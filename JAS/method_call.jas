@@ -1,0 +1,38 @@
+// CPSC 359
+// Demonstrates how to call a method
+// May 22, 2019
+
+.constant
+OBJREF 0x40
+.end-constant
+
+.main 		// main program
+
+.var		// local variables
+a
+b
+c
+.end-var
+
+start:
+	LDC_W		OBJREF
+	BIPUSH		1	// 1st arg
+	BIPUSH		3	// 2nd arg
+	INVOKEVIRTUAL	ADD	// ADD(1 + 3)
+
+	ISTORE		a	// a = ADD(1 + 3)
+
+end:	HALT
+
+.end-main
+
+.method ADD(a, b)
+
+	ILOAD	a
+	ILOAD	b
+
+	IADD	// a + b
+
+	IRETURN
+
+.end-method

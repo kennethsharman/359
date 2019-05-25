@@ -1,0 +1,46 @@
+// CPSC 359
+// For loop that increments value of a local variable during each iteration
+// May 22, 2019
+
+.constant
+OBJREF 0x40
+.end-constant
+
+.main 		// main program
+
+.var		// local variables
+i
+j
+s
+.end-var
+
+start:
+	BIPUSH	0x64	// 100
+	ISTORE	j	// j = 100
+
+	BIPUSH	0x0	// 0
+	DUP
+	ISTORE	s	// s = 0
+	ISTORE	i	// i = 0
+top:
+	ILOAD	i
+	ILOAD	j
+
+	ISUB			// i - j
+	IFLT	for_body	// i < j
+	GOTO	end
+for_body:
+	ILOAD	i
+	ILOAD	s
+	IADD
+	ISTORE	s		// s += i
+
+	ILOAD	i
+	BIPUSH	0x1
+	IADD
+	ISTORE	i		// i++
+
+	GOTO	top
+end:	HALT
+
+.end-main

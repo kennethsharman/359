@@ -1,0 +1,20 @@
+// CPSC 359
+// 
+// Ken Sharman
+
+.constant
+OBJREF 0x40
+.end-constant
+
+.main 		// main program
+
+.var		// local variables
+.end-var
+
+start:
+
+
+
+end:	HALT
+
+.end-main
