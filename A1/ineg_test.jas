@@ -1,6 +1,6 @@
 // CPSC 359
 // Test program for ISA instruction INEG
-// Author:	Ken Sharman
+// Author:	Kenneth Sharman (00300185)
 // Date:	May 25, 2019
 
 .main		// main program
