@@ -1,0 +1,40 @@
+// CPSC 359	Question 2a - IMUL ISA
+// Description:	Demonstrates the IMUL has been sucessfully implemented in mi1ijvm.mal. Only
+//		non-negative operands are accepted. 4 tests are performed that cover all 
+//		possible cases; int1<int2, int1>int2, int1=0, int2=0. Where int1 is next-to-top
+//		word on stack and int2 is top of stack word.
+//		Program is meant to be run on the emulator iwth 'clock' setting, to ensure operations.
+// Author:	Kenneth Sharman (00300185)
+// Date:	May 26, 2019
+
+.main		// main program
+
+start:
+	// Demo for case where int1<int2
+	BIPUSH		0x2		// push int1=2 onto stack
+	BIPUSH		0x3		// push int2=3 onto stack
+	IMUL				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+
+	// Demo for case where int1>int2
+	BIPUSH		0x3		// push int1=3 onto stack
+	BIPUSH		0x2		// push int2=2 onto stack
+	IMUL				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+
+	// Demo for case where int1=0
+	BIPUSH		0x0		// push int1=0 onto stack
+	BIPUSH		0x2		// push int2=2 onto stack
+	IMUL				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+
+	// Demo for case where int2=0
+	BIPUSH		0x3		// push int1=3 onto stack
+	BIPUSH		0x0		// push int2=0 onto stack
+	IMUL				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+
+	HALT				// end program
+
+.end-main
+

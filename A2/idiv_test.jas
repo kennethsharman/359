@@ -1,0 +1,40 @@
+// CPSC 359	Question 2b - IDIV ISA
+// Description:	Demonstrates the IDIV has been sucessfully implemented in mi1ijvm.mal. Only
+//		non-negative operands are accepted and divisor cannot be zero. 3 tests are 
+//		performed that cover all possible cases; int1<int2, int1>int2, int1=0. Where
+//		int1 is next-to-top word on stack and int2 is top of stack word.
+//		Program is meant to be used in emulator on the 'clock' setting, to ensure operations
+// Author:	Kenneth Sharman (00300185)
+// Date:	May 27, 2019
+
+.main		// main program
+
+start:
+// Demo for case where int1<int2
+	// Calcuting the quotient for 1/3, expect q = 0 and r = 1.
+	BIPUSH		0x1		// push int1=2 onto stack
+	BIPUSH		0x3		// push int2=3 onto stack
+	IDIV				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+	POP				// delete returned word from top of stack
+
+// Demo for case where int1>int2
+	// Calcuting the quotient for 10/3, expect q = 3 and r = 1.
+	BIPUSH		0xA		// push int1=10 onto stack
+	BIPUSH		0x3		// push int2=3 onto stack
+	IDIV				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+	POP				// delete returned word from top of stack
+
+// Demo for case where int1=0
+	// Calcuting the quotient for 0/3, expect q = 0 and r = 0.
+	BIPUSH		0x0		// push int1=0 onto stack
+	BIPUSH		0x3		// push int2=3 onto stack
+	IDIV				// pop two words from stack and push their product
+	POP				// delete returned word from top of stack
+	POP				// delete returned word from top of stack
+
+	HALT				// end program
+
+.end-main
+

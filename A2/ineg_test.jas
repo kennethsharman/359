@@ -1,0 +1,20 @@
+// CPSC 359	Question 1a
+// Description:	Test program for ISA instruction INEG.
+//		Negates two values to confirm proper operation.
+// Author:	Kenneth Sharman (00300185)
+// Date:	May 25, 2019
+
+.main		// main program
+
+start:
+	BIPUSH	0x01	// Push 1 to stack
+	INEG		// Negate value on top of stack
+			// Check TOS value in Mic1MMV: 0x01 -> 0xff
+	
+	BIPUSH	199	// Push 199 to stack
+	INEG		// Negate
+			// Check TOS value in Mic1MM: 0xc7 -> 0x39
+
+	HALT		// end program
+
+.end-main

@@ -1,0 +1,201 @@
+// CPSC 359	Question 1b
+// Description:	Program contains two methods; IMUL and IDIV. .main
+// 		demonstrates calling both of these methods. Uses INEG
+//		instruction that was added to ijvm.conf and mic1ijvm.mal
+//		Run the entire program and the expected outputs will be
+//		on top of the stack.
+// Author:	Kenneth Sharman (00300185)
+// Date:	May 26, 2019
+
+.constant	// constant pool
+OBJREF	0x40	// pointer to object used when method is called
+.end-constant
+
+.main		// main program
+
+start:	
+	// Demo of IMUL. Expect -3x2=-6=0xFA to be on top of stack after method call
+	LDC_W		OBJREF		// push pointer from constant pool onto stack
+	BIPUSH		0xFD		// push 1st param (-3) onto stack
+	BIPUSH		0x2		// push 2nd param (2) onto stack
+	INVOKEVIRTUAL	IMUL		// call IMUL(-3,2)
+
+	// Demo1 of IDIV. Expect q(3/-2)=-1=0xff to be on top of stack after method call
+	LDC_W		OBJREF		// push pointer from constant pool onto stack
+	BIPUSH		0xFD		// push 1st param (-3) onto stack
+	BIPUSH		0x2		// push 2nd param (2) onto stack
+	BIPUSH		0x0		// push 3rd param (return quotient) onto stack
+	INVOKEVIRTUAL	IDIV		// call IDIV(-3,2,0) 
+
+	// Demo2 of IDIV. Expect r(3/-2)=1 to be on top of stack after method call
+	LDC_W		OBJREF		// push pointer from constant pool onto stack
+	BIPUSH		0xFD		// push 1st param (-3) onto stack
+	BIPUSH		0x2		// push 2nd param (2) onto stack
+	BIPUSH		0x1		// push 3rd param (return remainder) onto stack
+	INVOKEVIRTUAL	IDIV		// call IDIV(-3,2,1)
+
+end:	HALT				// terminate program
+
+.end-main
+
+// Method multiplies the parameters and returns the result. Params and return
+// are signed integers, using 2's complement.
+.method IMUL(int1, int2)
+
+.var		// local variables
+abs_int1	// abs(int1)
+abs_int2	// abs(int2)
+m		// return variable
+c		// number of additions required
+o		// operand that is added to itself c times
+i		// number of additions performed
+.end-var
+
+// save the absolute values of the parameters to the local
+// variables abs_int1 and abs_int2
+	ILOAD		int1		// push int1 onto stack
+	DUP				// copy int1 and push onto stack
+	IFLT		b1		// branch to b1 if int1<0
+	ISTORE		abs_int1	// else abs_int1=int1
+
+b0:	ILOAD		int2		// push int2 onto stack
+	DUP				// copy int2 and push onto stack
+	IFLT		b2		// branch to b2 if int2<0
+	ISTORE		abs_int2	// else abs_int2=int2
+	GOTO		begin
+
+b1:	INEG				// negate value on top of stack (int1)
+	ISTORE		abs_int1	// abs_int1 = -int1
+	GOTO		b0		// branch to b0
+
+b2:	INEG				// negate value on top of stack (int2)
+	ISTORE		abs_int2	// abs_int2 = -int2
+
+// determine: c=min(abs_int1,abs_int2) and o=max(abs_int1,abs_int2) 
+begin:	BIPUSH		0		// push 0 onto stack
+	DUP				// copy 0 and push onto stack
+	ISTORE		m		// m = 0
+	ISTORE		i		// i = 0
+
+	ILOAD		abs_int1	// push abs_int1 onto stack
+	DUP				// copy abs_int1 and push onto stack
+	ILOAD		abs_int2	// push abs_int2 of onto stack
+	ISUB				// pop abs_int1 and abs_int2 and push int1-int2
+	IFLT		skip1		// if abs_int1<abs_int2 branch to skip	
+
+// if not branching to skip1, then abs_int1 > abs_int2
+	ILOAD		abs_int2	// push abs_int2 onto stack
+	ISTORE		c		// c = abs_int2
+	ISTORE		o		// o = abs_int1 (abs_int1 already on stack)
+	GOTO		test		// branch to loop test
+
+// if branching to skip1, then abs_int1 < abs_int2
+skip1:	ISTORE		c		// c = abs_int1 (abs_int1 already on stack)
+	ILOAD		abs_int2	// push abs_int2 onto stack
+	ISTORE		o		// o = abs_int2
+	GOTO		test		// branch to loop test
+
+// for loop that executes the multiplication through repeated addition
+top:	ILOAD		o		// push o onto stack
+	ILOAD		m		// push m onto stack
+	IADD				// pop o and m and push o + m
+	ISTORE		m		// m = m + 0
+	IINC		i 0x1		// i++
+
+test:	ILOAD		i		// push i onto stack
+	ILOAD		c		// push c onto stack
+	ISUB				// pop i and c and push i-c
+	IFLT		top		// branch to top if i<c
+
+// test to see if exactly one of params/operands is negative
+	ILOAD		m		// push m onto stack in preparation of return
+	ILOAD		int1		// push 1st param onto stack
+	IFLT		skip2		// if int1<0 branch to skip2
+	ILOAD		int2		// push 2nd param onto stack
+	IFLT		negate		// branch to negate if int1>0 and int2<0
+	GOTO		done		// else int1>0 and int2>0
+
+// if branching to skip2, then int1<0
+skip2:	ILOAD		int2		// push 2nd param onto stack
+	IFLT		done		// branch to done if int1<0 and int2<0
+					// else int1<0 and int2>0
+negate:	INEG				// negate m (already on stack)
+
+done:	IRETURN				// return to main with m on top of stack
+
+.end-method
+
+// Method divides first param by second and either returns the quotient when the 3rd param
+// return_type==0 or returns the remainder when return_type!=0. All params and returns are
+// 2's complement signed integers.
+.method IDIV(int1, int2, return_type)
+
+.var
+abs_int1		// abs(int1)
+abs_int2		// abs(int2)
+q			// quotient
+r			// remainder
+.end-var
+
+// save the absolute values of the parameters to the local
+// variables abs_int1 and abs_int2
+	ILOAD		int1		// push int1 onto stack
+	DUP				// copy int1 and push onto stack
+	IFLT		j1		// branch to j1 if int1<0
+	ISTORE		abs_int1	// else abs_int1=int1
+
+j0:	ILOAD		int2		// push int2 onto stack
+	DUP				// copy int2 and push onto stack
+	IFLT		j2		// branch to j2 if int2<0
+	ISTORE		abs_int2	// else abs_int2=int2
+	GOTO		begin2
+
+j1:	INEG				// negate value on top of stack (int1)
+	ISTORE		abs_int1	// abs_int1 = -int1
+	GOTO		j0		// branch to j0
+
+j2:	INEG				// negate value on top of stack (int2)
+	ISTORE		abs_int2	// abs_int2 = -int2
+
+begin2:	BIPUSH		0x0		// push 0 onto stack
+	ISTORE		q		// q = 0
+	ILOAD		abs_int1	// push abs_int1 onto stack
+	ISTORE		r		// r = abs_int1
+
+test2:	ILOAD		r		// push r onto stack
+	ILOAD		abs_int2	// push abs_int2 onto stack
+	ISUB				// pop r and abs_int2 and push r-abs_int2
+	DUP				// copy r-abs_int2 and push onto stack
+	IFLT		skip3		// if r<abs_int2 branch to skip3
+	ISTORE		r		// r = r-abs_int2
+	IINC		q 0x1		// q++
+	GOTO		test2		// branch to test2
+
+skip3:	POP				// pop r-abs_int2 from top of stack
+
+// test to see if exactly one of params/operands is negative
+	ILOAD		int1		// push 1st param onto stack
+	IFLT		skip4		// if int1<0 branch to skip4
+	ILOAD		int2		// push 2nd param onto stack
+	IFLT		neg2		// branch to neg2 if int1>0 and int2<0
+	GOTO		setret		// else int1>0 and int2>0
+
+// if branching to skip4, then int1<0
+skip4:	ILOAD		int2		// push 2nd param onto stack
+	IFLT		setret		// branch to done2 if int1<0 and int2<0
+					// else int1<0 and int2>0
+neg2:	ILOAD		q		// push q onto stack
+	INEG				// negate value on top of stack
+	ISTORE		q		// q = -q
+
+setret: ILOAD		return_type	// push return_type onto stack
+	IFEQ		ret_q		// if return_type=0 branch to ret_q
+	ILOAD		r		// else return r
+	GOTO		done2		// branch to done2
+	
+ret_q:	ILOAD		q		// return r
+
+done2:	IRETURN				// return to main with r or q
+
+.end-method
+
